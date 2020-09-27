@@ -18,7 +18,6 @@ import email
 import logging
 
 
-# TODO: Decode message and create note
 # TODO: extract attachment for long messages
 
 
@@ -71,11 +70,12 @@ with open('log.txt', 'r+') as log:
     # Check if email already logged
     lines = log.readlines()
     lines_filtered = [line.strip() for line in lines]
-    # TODO: If Log longer than 100 lines, clear oldest log
+    # TODO: If Log longer than 100 lines, clear older logs
 
+    # If email not logged, log and create .txt in Inbox/
     for subject, message in inbox.items():
         if subject not in lines_filtered:
             logging.info(f"Logging: {subject}")
-            log.write(subject)
-
-print(lines_filtered)
+            log.write(subject + '\n')
+            with open(f"Inbox/{subject}.txt", 'w') as note:
+                note.write(message)
