@@ -18,28 +18,31 @@ import email
 import logging
 
 
-# TODO: extract attachment for long messages
-
-
 # Configure logging
 logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO, datefmt="%H:%M:%S")
+
 
 # Assign email and password
 with open('user_info.txt') as user_info:
     email_user = user_info.readline().strip()
     email_pass = user_info.readline().strip()
-    approved_sender = user_info.readline().strip()
+    approved_sender1 = user_info.readline().strip()
+    approved_sender2 = user_info.readline().strip()
+
 
 # Make connection to host
 port = 993
 mail = imaplib.IMAP4_SSL("imap.gmail.com", port)
 
+
 # Log in to email account
 mail.login(email_user, email_pass)
+
 
 # Specify mail
 mail.select('Inbox')
 typ, data = mail.search(None, 'ALL')
+
 
 # Loop through emails
 inbox = {}
@@ -61,8 +64,26 @@ for num in data[0].split():
             except (AttributeError, TypeError):
                 e_message = msg.get_payload(decode=True)
 
-            if email_from == approved_sender:
+            # If approved sender 1, add to dictionary
+            # If approved sender 2, download attachment
+            if email_from == approved_sender1:
                 inbox[email_subject] = e_message
+            elif email_from == approved_sender2:
+                for part in email_message.walk():
+                    # if part.get('Content-Disposition') is None:
+                    #     continue
+                    file_name = part.get_filename()
+                    if bool(file_name):
+                        logging.info(f"Downloaded {file_name}")
+                        filePath = f"Inbox/{file_name}"
+                        with open(filePath, 'wb') as fp:
+                            fp.write(part.get_payload(decode=True))
+                        with open(filePath, 'r') as fp:
+                            new_name = fp.readline()[0:10].strip() + '.txt'
+                        os.rename(filePath, f"Inbox/{new_name}")
+                        logging.info(f"Renamed to {new_name}")
+                        # TODO: Add file name to log
+                        # TODO: delete file if already in log?
 
 
 # Update log if email not logged
