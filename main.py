@@ -3,7 +3,7 @@
 """
 Notes
 
-Read inbox of chosen email and create .txt from new emails
+Read inbox of chosen email account and create .txt from new emails. Use to replace Evernote
 
 @source https://medium.com/@sdoshi579/to-read-emails-and-download-attachments-in-python-6d7d6b60269
 
@@ -65,14 +65,14 @@ def extract_emails(email_user, email_pass, approved_sender_1, approved_sender_2,
                 msg = email.message_from_string(response_part[1].decode('utf-8'))
                 email_from = msg['from']
                 if email_from == approved_sender_1:
-                    logging.info(f"Create .txt from email body, {date_delivered[1]}")
+                    logging.info(f"Create .txt from email body, '{date_delivered[1]}'")
                     try:
                         email_body = msg.get_payload(decode=True).decode('utf-8').strip()
                     except (AttributeError, TypeError):
                         email_body = msg.get_payload(decode=True)
                     create_txt(email_body)
                 elif email_from == approved_sender_2:
-                    logging.info(f"Create .txt from attachment, {date_delivered[1]}")
+                    logging.info(f"Create .txt from attachment, '{date_delivered[1]}'")
                     for part in email_message.walk():
                         file_name = part.get_filename()
                         if bool(file_name):
@@ -83,7 +83,7 @@ def extract_emails(email_user, email_pass, approved_sender_1, approved_sender_2,
 
         # Update log with new email date
         if not unapproved_sender_flag:
-            logging.info(f"Update log with {date_delivered[1]}")
+            logging.info(f"Update log with '{date_delivered[1]}'")
             new_dates.append(date_delivered[1])
 
     return new_dates
@@ -92,14 +92,23 @@ def extract_emails(email_user, email_pass, approved_sender_1, approved_sender_2,
 def create_txt(text: str):
     """Create .txt from string"""
     # Assign name to note
+    illegal_char = r"\/:*?\"<>|"
     if len(text) > 20:
         note_name = text.strip()[0:20]
     else:
         note_name = text.strip()
+    note_name = remove_char(note_name, illegal_char)
 
     # Write contents to note
     with open(f"Inbox/{note_name}.txt", 'w') as note:
         note.write(text)
+
+
+def remove_char(value, delete_chars):
+    """Remove delete_chars from value"""
+    for ch in delete_chars:
+        value = value.replace(ch, '')
+    return value
 
 
 if __name__ == "__main__":
