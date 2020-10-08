@@ -99,6 +99,14 @@ def create_txt(text: str):
         note_name = text.strip()
     note_name = remove_char(note_name, illegal_char)
 
+    # Check Inbox if note name exists already
+    count = 0
+    while note_name + ".txt" in os.listdir('Inbox'):
+        count += 1
+        if count == 10:
+            break
+        note_name += str(count)
+
     # Write contents to note
     with open(f"Inbox/{note_name}.txt", 'w') as note:
         note.write(text)
@@ -128,7 +136,7 @@ if __name__ == "__main__":
     new_dates = extract_emails(email_user, email_pass, approved_sender_1, approved_sender_2, logged_dates)
 
     # Update log
-    # TODO: If Log longer than 100 lines, clear older logs
+    # TODO: If Log longer than 100 lines, clear older logs (logs at start of file)
     with open('log.txt', 'a') as log:
         while new_dates:
             log.write(new_dates.pop() + '\n')
