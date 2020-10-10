@@ -129,14 +129,19 @@ if __name__ == "__main__":
 
     # Extract log
     with open('log.txt', 'r') as log:
-        logged_dates = log.readlines()
-        logged_dates = [line.strip() for line in logged_dates]
+        logged_dates_raw = log.readlines()
+        logged_dates = [line.strip() for line in logged_dates_raw]
 
     # Extract dates from emails
     new_dates = extract_emails(email_user, email_pass, approved_sender_1, approved_sender_2, logged_dates)
 
+    # Clear old logs
+    if len(logged_dates_raw) > 100:
+        logged_dates_raw = logged_dates_raw[-100:]
+        with open('log.txt', 'w') as log:
+            log.writelines(logged_dates_raw)
+
     # Update log
-    # TODO: If Log longer than 100 lines, clear older logs (logs at start of file)
     with open('log.txt', 'a') as log:
         while new_dates:
             log.write(new_dates.pop() + '\n')
