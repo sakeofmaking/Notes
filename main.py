@@ -17,6 +17,9 @@ import os
 import email
 import logging
 import re
+import threading
+import time
+import sys
 
 
 # Configure logging
@@ -40,9 +43,9 @@ def extract_emails(email_user, email_pass, approved_sender_1, approved_sender_2,
     dates = []
     new_dates = []
     date_pattern = r"([\w]{3}, [\d]{1,2} [\w]{3} [\d]{4} [\d]{2}:[\d]{2}:[\d]{2})"
-    for num in data[0].split():
+    for index, num in enumerate(reversed(data[0].split())):
         # Break if over 20 emails
-        if int(num) > 20:
+        if index > 20:
             break
 
         # Extract email date for logging
@@ -119,7 +122,9 @@ def remove_char(value, delete_chars):
     return value
 
 
-if __name__ == "__main__":
+def email_thread(delay):
+    """Email to txt thread"""
+    logging.info("Email Thread: starting")
     # Assign email and password
     with open('user_info.txt') as user_info:
         email_user = user_info.readline().strip()
@@ -146,5 +151,43 @@ if __name__ == "__main__":
         while new_dates:
             log.write(new_dates.pop() + '\n')
 
+    time.sleep(delay)
+    logging.info("Email Thread: finishing")
+
+
+def clear_thread(delay):
+    """Clears terminal of text"""
+    logging.info("Clear Thread: starting")
+
+    # Check platform
+    if sys.platform == 'win32':
+        # Windows command clear
+        os.system('cls')
+    else:
+        # Linux shell clear
+        os.system('clear')
+
+    time.sleep(delay)
+    logging.info("Clear Thread: finishing")
+
+
+if __name__ == "__main__":
+    # Thread Loop
+        MINUTE = 60
+        HOUR = 3600
+        x = threading.Thread(target=email_thread, args=(MINUTE * 30,))
+        y = threading.Thread(target=clear_thread, args=(HOUR * 24,))
+
+        while True:
+            if not x.is_alive():
+                x = threading.Thread(target=email_thread, args=(MINUTE * 30,))
+                x.start()
+
+            if not y.is_alive():
+                y = threading.Thread(target=clear_thread, args=(HOUR * 24,))
+                y.start()
+
+            time.sleep(MINUTE)
+            logging.info("Main    : all done")
 
 
